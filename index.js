@@ -20,13 +20,16 @@ const robotSchedules = () => {
 robotSchedules();
 
 let messageModel = `
----- Jack's Pot Insight ----
+-------- Jack's Pot Insight ---------
 Jackpot:    $PRIZE_POOL$ WAN
 Pool:       $TOTAL_POOL$ WAN
 Players:    $TOTAL_PLAYER$
 Tickets:    $TOTAL_TICKETS$
+---------- Last Round ---------------
 Win Number: $WIN_NUMBER$
+Prize:      $PAID_PRIZE$
 Winners:    $WINNERS$
+-------------------------------------
 ( Welcome to play Jack's Pot in Wan Wallet DApps or in website https://jackspot.finnexus.app/ )`
 
 let messageModel2 = `
@@ -68,11 +71,17 @@ async function getJacksPotInfos() {
 
     let winCode = 0;
     let winCount = 0;
-    winCount = Number(settleEvents[i].returnValues.amounts[0]) > 0 ? settleEvents[settleEvents.length - 1].returnValues.amounts.length : 0;
+
+    winCount = Number(settleEvents[settleEvents.length - 1].returnValues.amounts[0]) > 0 ? settleEvents[settleEvents.length - 1].returnValues.amounts.length : 0;
     winCode = settleEvents[settleEvents.length - 1].returnValues.winnerCode;
+    let paid_prize = 0;
+    for (let i=0; i<settleEvents[settleEvents.length - 1].returnValues.amounts.length; i++) {
+        paid_prize += Number(web3.utils.fromWei(settleEvents[settleEvents.length - 1].returnValues.amounts[i]));
+    }
     
     msg.replace('$WIN_NUMBER$', winCode);
     msg.replace('$WINNERS$', winCount);
+    msg.replace('$PAID_PRIZE$', paid_prize.toString());
 
 
     let playerData = [];
