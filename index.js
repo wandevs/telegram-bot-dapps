@@ -13,6 +13,7 @@ const robotSchedules = () => {
     // update: The settlement robot calls this function daily to update the capital pool and settle the pending refund.
     schedule.scheduleJob('0 * * * * *', async () => {
         let msg = await getJacksPotInfos();
+        console.log(msg);
         await bot.sendMessage(chatId, msg);
     });
 }
@@ -20,7 +21,7 @@ const robotSchedules = () => {
 robotSchedules();
 
 let messageModel = `
--------- Jack's Pot Insight ---------
+-------- Jack's Pot Insight $DATE$---------
 Jackpot:    $PRIZE_POOL$ WAN
 Pool:       $TOTAL_POOL$ WAN
 Players:    $TOTAL_PLAYER$
@@ -52,6 +53,8 @@ async function getJacksPotInfos() {
         }
         await sleep(100);
     }
+
+    msg.replace("$DATA$", new Date().toISOString().split('T')[0]);
 
     let web3 = getWeb3();
     let sc = new web3.eth.Contract(jackspotAbi, jacksPotSC);
