@@ -134,6 +134,8 @@ async function getJacksPotInfos() {
     msg.replace("$TOTAL_TICKETS$", tickets.length.toString());
     msg.replace("$TOTAL_PLAYER$", playerData.length.toString());
 
+    console.log('msg', msg);
+
     return msg;
 }
 
