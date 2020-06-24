@@ -1,12 +1,9 @@
 const TelegramBot = require('node-telegram-bot-api');
-
+const { token, chatId } = require('./config');
 // replace the value below with the Telegram token you receive from @BotFather
-const token = '';
-
 // Create a bot that uses 'polling' to fetch new updates
 const bot = new TelegramBot(token, {polling: true});
 
-const chatId = 0;
 bot.sendMessage(chatId, 'Hey there! I am wanchain dapp bot!');
 
 // // Matches "/echo [whatever]"
