@@ -54,7 +54,7 @@ async function getJacksPotInfos() {
         await sleep(100);
     }
 
-    msg.replace("$DATA$", new Date().toISOString().split('T')[0]);
+    msg=msg.replace("$DATA$", new Date().toISOString().split('T')[0]);
 
     let web3 = getWeb3();
     let sc = new web3.eth.Contract(jackspotAbi, jacksPotSC);
@@ -69,8 +69,8 @@ async function getJacksPotInfos() {
 
     let totalPool = (Number(web3.utils.fromWei(poolInfo.delegatePool)) + Number(web3.utils.fromWei(poolInfo.demandDepositPool)) + Number(web3.utils.fromWei(poolInfo.prizePool))).toFixed(1);
     let pricePool = Number(web3.utils.fromWei(poolInfo.prizePool)).toFixed(1);
-    msg.replace("$TOTAL_POOL$", totalPool);
-    msg.replace("$PRIZE_POOL$", pricePool);
+    msg=msg.replace("$TOTAL_POOL$", totalPool);
+    msg=msg.replace("$PRIZE_POOL$", pricePool);
 
     let winCode = 0;
     let winCount = 0;
@@ -82,9 +82,9 @@ async function getJacksPotInfos() {
         paid_prize += Number(web3.utils.fromWei(settleEvents[settleEvents.length - 1].returnValues.amounts[i]));
     }
     
-    msg.replace('$WIN_NUMBER$', winCode);
-    msg.replace('$WINNERS$', winCount);
-    msg.replace('$PAID_PRIZE$', paid_prize.toString());
+    msg=msg.replace('$WIN_NUMBER$', winCode);
+    msg=msg.replace('$WINNERS$', winCount);
+    msg=msg.replace('$PAID_PRIZE$', paid_prize.toString());
 
 
     let playerData = [];
@@ -131,8 +131,8 @@ async function getJacksPotInfos() {
       }
     }
 
-    msg.replace("$TOTAL_TICKETS$", tickets.length.toString());
-    msg.replace("$TOTAL_PLAYER$", playerData.length.toString());
+    msg=msg.replace("$TOTAL_TICKETS$", tickets.length.toString());
+    msg=msg.replace("$TOTAL_PLAYER$", playerData.length.toString());
 
     console.log('msg', msg);
 
