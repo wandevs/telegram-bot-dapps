@@ -54,7 +54,7 @@ async function getJacksPotInfos() {
         await sleep(100);
     }
 
-    msg=msg.replace("$DATA$", new Date().toISOString().split('T')[0]);
+    msg=msg.replace("$DATE$", new Date().toISOString().split('T')[0]);
 
     let web3 = getWeb3();
     let sc = new web3.eth.Contract(jackspotAbi, jacksPotSC);
