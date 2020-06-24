@@ -29,8 +29,8 @@ let messageModel = `
 
 🔍 Last Round 🔍
   Win Number: $WIN_NUMBER$
-  Prize:          $PAID_PRIZE$
-  Winners:      $WINNERS$
+  Prize:            $PAID_PRIZE$
+  Winners:       $WINNERS$
 
 🚀🚀🚀🚀🚀
 ( Welcome to play Jack's Pot in Wan Wallet DApps or in website https://jackspot.finnexus.app/ )`
