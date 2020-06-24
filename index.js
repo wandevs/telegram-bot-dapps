@@ -1,40 +1,63 @@
 const TelegramBot = require('node-telegram-bot-api');
 const schedule = require('node-schedule');
 const { token, chatId } = require('./config');
+const jackspotAbi = require('./jackspot-abi.json');
+import { getWeb3, isSwitchFinish } from './web3switch';
 // replace the value below with the Telegram token you receive from @BotFather
 // Create a bot that uses 'polling' to fetch new updates
-const bot = new TelegramBot(token, {polling: true});
+const bot = new TelegramBot(token, { polling: true });
 
 // * * * * * *
 // second minute hour day month dayOfWeek
-const robotSchedules = ()=>{
+const robotSchedules = () => {
     // update: The settlement robot calls this function daily to update the capital pool and settle the pending refund.
     schedule.scheduleJob('0 * * * * *', async () => {
-        await bot.sendMessage(chatId, 'Hey there! I am wanchain dapp bot!');
+        let msg = await getInfos();
+        await bot.sendMessage(chatId, msg);
     });
 }
 
 robotSchedules();
 
+let messageModel = `
+Hello, everyone! 
+It's my honor to introduce the latest status of Jack's Pot DApp on Wanchain.
 
-// // Matches "/echo [whatever]"
-// bot.onText(/\/echo (.+)/, (msg, match) => {
-//   // 'msg' is the received Message from Telegram
-//   // 'match' is the result of executing the regexp above on the text content
-//   // of the message
+---- The No-loss lottery Jack's Pot ----
+Jack's Pot's total stake pool has reached $TOTAL_POOL$ Wan.
+The jackpot amount for this round is $PRIZE_POOL$ Wan.
+( Welcome join us to play in Wan Wallet DApps or in website https://jackspot.finnexus.app/ )
+----------------------------------------`
 
-//   const chatId = msg.chat.id;
-//   const resp = match[1]; // the captured "whatever"
+let messageModel2 = `
+Hello, everyone! 
+It's my honor to introduce the latest status of Wandora Box DApp on Wanchain.
 
-//   // send back the matched "whatever" to the chat
-//   bot.sendMessage(chatId, resp);
-// });
+---- Price Predication Product Wandora Box ----
+Wandora Box had $WANDORA_AMOUNT$ wan trade in last 24 hours.
+( Welcome join us to play in Wan Wallet DApps or in website https://wandora.finnexus.app/ )
+-----------------------------------------------`;
 
-// // Listen for any kind of message. There are different kinds of
-// // messages.
-// bot.on('message', (msg) => {
-//   const chatId = msg.chat.id;
+const jacksPotSC = "0x76b074d91f546914c6765ef81cbdc6f9c7da5685";
 
-//   // send a message to the chat acknowledging receipt of their message
-//   bot.sendMessage(chatId, 'Received your message');
-// });
+async function getInfos() {
+    let msg = messageModel;
+
+    while (true) {
+        if (isSwitchFinish()) {
+            break;
+        }
+        await sleep(100);
+    }
+
+    let web3 = getWeb3();
+    let jackspot = new web3.eth.Contract(jackspotAbi, jacksPotSC);
+    let poolInfo = await jackspot.methods.poolInfo().call();
+    let totalPool = (Number(web3.utils.fromWei(poolInfo.delegatePool)) + Number(web3.utils.fromWei(poolInfo.demandDepositPool)) + Number(web3.utils.fromWei(poolInfo.prizePool))).toFixed(1);
+    let pricePool = Number(web3.utils.fromWei(poolInfo.prizePool)).toFixed(1);
+    msg.replace("$TOTAL_POOL$", totalPool);
+    msg.replace("$PRIZE_POOL$", pricePool);
+
+    return msg;
+}
+
