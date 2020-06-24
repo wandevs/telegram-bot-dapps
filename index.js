@@ -12,7 +12,7 @@ const bot = new TelegramBot(token, { polling: true });
 const robotSchedules = () => {
     // update: The settlement robot calls this function daily to update the capital pool and settle the pending refund.
     schedule.scheduleJob('0 * * * * *', async () => {
-        let msg = await getInfos();
+        let msg = await getJacksPotInfos();
         await bot.sendMessage(chatId, msg);
     });
 }
