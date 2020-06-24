@@ -11,7 +11,7 @@ const bot = new TelegramBot(token, { polling: true });
 // second minute hour day month dayOfWeek
 const robotSchedules = () => {
     // update: The settlement robot calls this function daily to update the capital pool and settle the pending refund.
-    schedule.scheduleJob('0 * * * * *', async () => {
+    schedule.scheduleJob('0 0 0 * * *', async () => {
         let msg = await getJacksPotInfos();
         console.log(msg);
         await bot.sendMessage(chatId, msg);
