@@ -4,7 +4,17 @@ const { token, chatId } = require('./config');
 // Create a bot that uses 'polling' to fetch new updates
 const bot = new TelegramBot(token, {polling: true});
 
-bot.sendMessage(chatId, 'Hey there! I am wanchain dapp bot!');
+// * * * * * *
+// second minute hour day month dayOfWeek
+const robotSchedules = ()=>{
+    // update: The settlement robot calls this function daily to update the capital pool and settle the pending refund.
+    schedule.scheduleJob('0 * * * * *', async () => {
+        await bot.sendMessage(chatId, 'Hey there! I am wanchain dapp bot!');
+    });
+}
+
+robotSchedules();
+
 
 // // Matches "/echo [whatever]"
 // bot.onText(/\/echo (.+)/, (msg, match) => {
