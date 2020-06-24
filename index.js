@@ -1,4 +1,5 @@
 const TelegramBot = require('node-telegram-bot-api');
+const schedule = require('node-schedule');
 const { token, chatId } = require('./config');
 // replace the value below with the Telegram token you receive from @BotFather
 // Create a bot that uses 'polling' to fetch new updates
