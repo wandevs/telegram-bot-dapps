@@ -22,14 +22,18 @@ robotSchedules();
 
 let messageModel = `
 🌟 Jack's Pot Insight $DATE$ 🌟
+
 Jackpot:    $PRIZE_POOL$ WAN
 Pool:         $TOTAL_POOL$ WAN
 Players:     $TOTAL_PLAYER$
 Tickets:     $TOTAL_TICKETS$
+
 🔍 Last Round 🔍
+
 Win Number: $WIN_NUMBER$
 Prize:          $PAID_PRIZE$
 Winners:      $WINNERS$
+
 🚀🚀🚀🚀🚀
 ( Welcome to play Jack's Pot in Wan Wallet DApps or in website https://jackspot.finnexus.app/ )`
 
