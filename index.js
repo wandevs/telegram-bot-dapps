@@ -79,14 +79,11 @@ async function getJacksPotInfos() {
 
     winCount = Number(settleEvents[settleEvents.length - 1].returnValues.amounts[0]) > 0 ? settleEvents[settleEvents.length - 1].returnValues.amounts.length : 0;
     winCode = settleEvents[settleEvents.length - 1].returnValues.winnerCode;
-    let paid_prize = 0;
-    for (let i=0; i<settleEvents[settleEvents.length - 1].returnValues.amounts.length; i++) {
-        paid_prize += Number(web3.utils.fromWei(settleEvents[settleEvents.length - 1].returnValues.amounts[i]));
-    }
+    let paid_prize = Number(web3.utils.fromWei(settleEvents[settleEvents.length - 1].returnValues.prizePool)).toFixed(1);
     
     msg=msg.replace('$WIN_NUMBER$', winCode);
     msg=msg.replace('$WINNERS$', winCount);
-    msg=msg.replace('$PAID_PRIZE$', paid_prize.toString());
+    msg=msg.replace('$PAID_PRIZE$', paid_prize);
 
 
     let playerData = [];
