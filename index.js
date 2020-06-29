@@ -2,7 +2,12 @@ const TelegramBot = require('node-telegram-bot-api');
 const schedule = require('node-schedule');
 const { token, chatId } = require('./config');
 const jackspotAbi = require('./jackspot-abi.json');
+const wandoraBoxAbi = require('./wandora-abi.json');
 const { getWeb3, isSwitchFinish } = require('./web3switch');
+const { promisify } = require('util')
+const sleep = promisify(setTimeout)
+
+
 // replace the value below with the Telegram token you receive from @BotFather
 // Create a bot that uses 'polling' to fetch new updates
 const bot = new TelegramBot(token, { polling: true });
@@ -11,11 +16,17 @@ const bot = new TelegramBot(token, { polling: true });
 // second minute hour day month dayOfWeek
 const robotSchedules = () => {
     // update: The settlement robot calls this function daily to update the capital pool and settle the pending refund.
-    schedule.scheduleJob('0 0 0 * * *', async () => {
+    schedule.scheduleJob('0 0 6,18 * * *', async () => {
         let msg = await getJacksPotInfos();
         console.log(msg);
         await bot.sendMessage(chatId, msg);
     });
+
+    schedule.scheduleJob('0 0 0,24 * * *', async () => {
+      let wandoraMsg = await getWandoraBoxInfos();
+      console.log(wandoraMsg);
+      await bot.sendMessage(chatId, wandoraMsg);
+  });
 }
 
 robotSchedules();
@@ -36,15 +47,112 @@ let messageModel = `
 ( Welcome to play Jack's Pot in Wan Wallet DApps or in website https://jackspot.finnexus.app/ )`
 
 let messageModel2 = `
-Hello, everyone! 
-It's my honor to introduce the latest status of Wandora Box DApp on Wanchain.
+Wandora Box DApp Stats - $DATE$
 
 ---- Price Predication Product Wandora Box ----
-Wandora Box had $WANDORA_AMOUNT$ wan trade in last 24 hours.
-( Welcome join us to play in Wan Wallet DApps or in website https://wandora.finnexus.app/ )
+
+24 hour WAN volume: $WANDORA_AMOUNT$ WAN
+
+(Try the app for yourself at https://wandora.finnexus.app/ or through the DApp store in the official Wanchain Desktop Light Wallet!)
 -----------------------------------------------`;
 
 const jacksPotSC = "0x76b074d91f546914c6765ef81cbdc6f9c7da5685";
+const wandoraBoxWan2BtcSC = "0xdfad0145311acb8f0e0305aceef5d11a05df9aa0";
+
+
+async function getWandoraBoxInfos() {
+  let msg = messageModel2;
+
+  while (true) {
+      if (isSwitchFinish()) {
+          break;
+      }
+      await sleep(100);
+  }
+
+  let web3 = getWeb3();
+
+  const currentBlockNumber = await web3.eth.getBlockNumber()
+
+  // The estimated number of the block with a timestamp 24 hours from now based on an assumption of a 5 second block time
+  let estimateBlockNumber = currentBlockNumber - 17280
+  let correctBlockNumber
+  let estimateBlockDetails = await web3.eth.getBlock(estimateBlockNumber) 
+  let estimateBlockTime = estimateBlockDetails.timestamp
+  // Total number of seconds between current time and timestamp of estimated block
+  let secondsElapsed = (Date.now() / 1000) - estimateBlockTime
+  // The target for secondsElapsed is 24 hours. timeError is the error in seconds based on the first estimatedBlockTime
+  // 86400 seconds in one day
+  let timeError = 86400 - secondsElapsed
+  if (Math.abs(timeError) <= 60){
+    correctBlockNumber = estimateBlockNumber
+  }
+  // A positive time error means that secondsElapsed is too short, and estimateBlockTime is too late / estimateBlockNumber is too high
+  else if (timeError > 60) {
+    while (timeError > 60) {
+      let timeErrorDivisor = 2
+      let blockStepFound = false
+      while (!blockStepFound) {
+        let timeStep = timeError / timeErrorDivisor
+        let blockStep = Math.round(timeStep / 5)
+        let newEstimateBlockNumber = estimateBlockNumber - blockStep
+        estimateBlockNumber = newEstimateBlockNumber
+        let newEstimateBlockDetails = await web3.eth.getBlock(newEstimateBlockNumber) 
+        // The newSecondsElapsed should be larger than the secondsElapsed 
+        let newSecondsElapsed = (Date.now() / 1000) - newEstimateBlockDetails.timestamp
+        // If newSecondsElapsed is larger than a day (86400 seconds), we should reduce the size of the time step, and repeat the while loop
+        if (newSecondsElapsed > 86400) {
+          timeErrorDivisor /= 2 
+        }
+        // If newSecondsElapsed is less than a day of seconds, then we found a blockstep which lets us increase the newSecondsElapsed without going over 24 hours
+        // We calculate a new timeError using newSecondsElapsed, which will be smaller than the original time error
+        // This continues untill the timeError is less than 60 seconds, breaking the parent loop
+        else if (newSecondsElapsed <= 86400) {
+          blockStepFound = true
+          timeError = 86400 - newSecondsElapsed
+        }
+      } 
+    }
+    correctBlockNumber = estimateBlockNumber
+  }
+  else if (timeError < -60) {
+    while(timeError < -60) {
+      let timeErrorDivisor = 2
+      let blockStepFound = false
+      while (!blockStepFound) {
+        let timeStep = timeError / timeErrorDivisor
+        let blockStep = Math.round(timeStep / 5)
+        let newEstimateBlockNumber = estimateBlockNumber - blockStep
+        estimateBlockNumber = newEstimateBlockNumber
+        let newEstimateBlockDetails = await web3.eth.getBlock(newEstimateBlockNumber) 
+        let newSecondsElapsed = (Date.now() / 1000) - newEstimateBlockDetails.timestamp
+
+        if (newSecondsElapsed < 86400) {
+          timeErrorDivisor /= 2 
+        }
+        else if (newSecondsElapsed >= 86400) {
+          blockStepFound = true
+          timeError = 86400 - newSecondsElapsed
+        }
+      }
+    }
+    correctBlockNumber = estimateBlockNumber
+  }
+  
+
+  let sc = new web3.eth.Contract(wandoraBoxAbi, wandoraBoxWan2BtcSC);
+
+  let funcs = [];
+  funcs.push(sc.getPastEvents('StakeIn', { fromBlock: correctBlockNumber }));
+  const [StakeInHistory] = await Promise.all(funcs);
+
+  let totalVolume = StakeInHistory.reduce((sum, item) => sum + Number(item.returnValues.stakeAmount), 0) / 10e17
+  
+  msg=msg.replace("$WANDORA_AMOUNT$", totalVolume);
+  msg=msg.replace("$DATE$", new Date().toISOString().split('T')[0]);
+  return msg;
+}
+
 
 async function getJacksPotInfos() {
     let msg = messageModel;
@@ -133,7 +241,7 @@ async function getJacksPotInfos() {
     msg=msg.replace("$TOTAL_TICKETS$", tickets.length.toString());
     msg=msg.replace("$TOTAL_PLAYER$", playerData.length.toString());
 
-    console.log('msg', msg);
+    // console.log('msg', msg);
 
     return msg;
 }
