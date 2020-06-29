@@ -22,7 +22,7 @@ const robotSchedules = () => {
         await bot.sendMessage(chatId, msg);
     });
 
-    schedule.scheduleJob('0 0 0,24 * * *', async () => {
+    schedule.scheduleJob('0 0 3,15 * * *', async () => {
       let wandoraMsg = await getWandoraBoxInfos();
       console.log(wandoraMsg);
       await bot.sendMessage(chatId, wandoraMsg);
