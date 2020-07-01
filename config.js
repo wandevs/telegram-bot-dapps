@@ -1,5 +1,5 @@
 const token = '';
-const chatId = 0;
+const chatId = ;
 
 module.exports = {
     token,

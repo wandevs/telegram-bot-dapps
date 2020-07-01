@@ -5,6 +5,7 @@ const jackspotAbi = require('./jackspot-abi.json');
 const wandoraBoxAbi = require('./wandora-abi.json');
 const { getWeb3, isSwitchFinish } = require('./web3switch');
 const sleep = require('ko-sleep');
+
 // replace the value below with the Telegram token you receive from @BotFather
 // Create a bot that uses 'polling' to fetch new updates
 const bot = new TelegramBot(token, { polling: true });
@@ -13,13 +14,13 @@ const bot = new TelegramBot(token, { polling: true });
 // second minute hour day month dayOfWeek
 const robotSchedules = () => {
     // update: The settlement robot calls this function daily to update the capital pool and settle the pending refund.
-    schedule.scheduleJob('0 0 6,18 * * *', async () => {
+    schedule.scheduleJob('0 0 0 * * *', async () => {
         let msg = await getJacksPotInfos();
         console.log(msg);
         await bot.sendMessage(chatId, msg);
     });
 
-    schedule.scheduleJob('0 0 3,15 * * *', async () => {
+    schedule.scheduleJob('0 0 12 * * *', async () => {
       let wandoraMsg = await getWandoraBoxInfos();
       console.log(wandoraMsg);
       await bot.sendMessage(chatId, wandoraMsg);
@@ -41,20 +42,26 @@ let messageModel = `
   Winners:       $WINNERS$
 
 🚀🚀🚀🚀🚀
-( Welcome to play Jack's Pot in Wan Wallet DApps or in website https://jackspot.finnexus.app/ )`
+(Play Jack's Pot through the Wan Wallet DApp Store or the web version at https://jackspot.finnexus.app/)`
 
 let messageModel2 = `
-Wandora Box DApp Stats - $DATE$
+🌟 Wandora Box DApp Stats - $DATE$ 🌟
 
----- Price Predication Product Wandora Box ----
+---- Wandora Box Price Prediction DApp ----
 
-24 hour WAN volume: $WANDORA_AMOUNT$ WAN
+🔍 24 Hour Volume: 🔍
+
+WAN/BTC: $WAN_TO_BTC$ WAN
+BTC/USD: $BTC_TO_USD$ WAN
+BTC/USD: $ETH_TO_USD$ WAN
 
 (Try the app for yourself at https://wandora.finnexus.app/ or through the DApp store in the official Wanchain Desktop Light Wallet!)
 -----------------------------------------------`;
 
 const jacksPotSC = "0x76b074d91f546914c6765ef81cbdc6f9c7da5685";
 const wandoraBoxWan2BtcSC = "0xdfad0145311acb8f0e0305aceef5d11a05df9aa0";
+const wandoraBoxBtc2UsdSC = "0x68f7ac0a94c553d86a606abd115e2128750335e1";
+const wandoraBoxEth2UsdSC = "0x9f2f486de9ce5519ac54032c66c0f9d9670f7d87";
 
 
 async function getWandoraBoxInfos() {
@@ -137,15 +144,25 @@ async function getWandoraBoxInfos() {
   }
   
 
-  let sc = new web3.eth.Contract(wandoraBoxAbi, wandoraBoxWan2BtcSC);
+  let wan2BtcSC = new web3.eth.Contract(wandoraBoxAbi, wandoraBoxWan2BtcSC);
+  let btc2UsdSC = new web3.eth.Contract(wandoraBoxAbi, wandoraBoxBtc2UsdSC);
+  let Eth2UsdSC = new web3.eth.Contract(wandoraBoxAbi, wandoraBoxEth2UsdSC);
 
-  let funcs = [];
-  funcs.push(sc.getPastEvents('StakeIn', { fromBlock: correctBlockNumber }));
-  const [StakeInHistory] = await Promise.all(funcs);
+  async function getTotalVolume (sc) {
+    let funcs = [];
+    funcs.push(sc.getPastEvents('StakeIn', { fromBlock: correctBlockNumber }));
+    const [StakeInHistory] = await Promise.all(funcs);
+    let totalVolume = StakeInHistory.reduce((sum, item) => sum + Number(item.returnValues.stakeAmount), 0) / 10e17
+    return totalVolume
+  }
 
-  let totalVolume = StakeInHistory.reduce((sum, item) => sum + Number(item.returnValues.stakeAmount), 0) / 10e17
+  wan2BtcTotal = await getTotalVolume(wan2BtcSC)
+  btc2UsdTotal = await getTotalVolume(btc2UsdSC)
+  Eth2UsdTotal = await getTotalVolume(Eth2UsdSC)
   
-  msg=msg.replace("$WANDORA_AMOUNT$", totalVolume);
+  msg=msg.replace("$WAN_TO_BTC$", wan2BtcTotal);
+  msg=msg.replace("$BTC_TO_USD$", btc2UsdTotal);
+  msg=msg.replace("$ETH_TO_USD$", Eth2UsdTotal);
   msg=msg.replace("$DATE$", new Date().toISOString().split('T')[0]);
   return msg;
 }
