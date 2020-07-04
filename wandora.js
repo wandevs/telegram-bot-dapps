@@ -19,7 +19,7 @@ let messageModel2 = `
 
 WAN/BTC: $WAN_TO_BTC$ WAN
 BTC/USD: $BTC_TO_USD$ WAN
-BTC/USD: $ETH_TO_USD$ WAN
+ETH/USD: $ETH_TO_USD$ WAN
 
 (Try the app for yourself at https://wandora.finnexus.app/ or through the DApp store in the official Wanchain Desktop Light Wallet!)
 -----------------------------------------------`;
