@@ -1,8 +1,9 @@
 const TelegramBot = require('node-telegram-bot-api');
 const { token, chatId } = require('./config');
-const jackspotAbi = require('./jackspot-abi.json');
 const { getWeb3, isSwitchFinish } = require('./web3switch');
 const sleep = require('ko-sleep');
+const wandoraBoxAbi = require('./wandora-abi.json');
+
 
 // replace the value below with the Telegram token you receive from @BotFather
 // Create a bot that uses 'polling' to fetch new updates
